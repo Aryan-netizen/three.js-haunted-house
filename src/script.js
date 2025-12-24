@@ -2,7 +2,8 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
-
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 /**
  * Base
  */
@@ -11,7 +12,7 @@ const gui = new dat.GUI()
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
-
+const fontloader = new FontLoader();
 // Scene
 const scene = new THREE.Scene()
 
@@ -79,7 +80,35 @@ baseRoughnessTexture.wrapT = THREE.RepeatWrapping
  * House
  */
 // Temporary sphere
+fontloader.load(
+    "/fonts/helvetiker_regular.typeface.json",(font)=>{
+        const textGeometry = new TextGeometry('Haunted House',{
+            font,size:0.5,height:0.2,curveSegments:5,bevelEnabled:true,bevelThickness:0.03,
+            bevelSize:0.02,
+            bevelOffset:0,
+            bevelSegments:4
+        });
+        textGeometry.computeBoundingBox();
+        textGeometry.translate(
+            -(textGeometry.boundingBox.max.x-0.02)*0.5,
+            -(textGeometry.boundingBox.max.y-0.02)*0.5,
+            -(textGeometry.boundingBox.max.z-0.02)*0.5
+        )
+        const material=new THREE.MeshStandardMaterial({color:"red",
+                aoMap: floorAmbientOcclusionTexture,
+    normalMap: floorNormalTexture,
+    displacementMap: floorHeightTexture,
+    displacementScale: 0.01,
+    roughnessMap: floorRoughnessTexture
+        });
+        const mesh= new THREE.Mesh(textGeometry,material);
+        mesh.position.y=3
+        mesh.rotation.y=Math.PI*0.5
+        scene.add(mesh)
 
+        
+    }
+)
 
 // Floor
 const floor = new THREE.Mesh(
@@ -308,6 +337,7 @@ const tick = () =>
     house.position.y=Math.abs(Math.sin(angle)*0.15)
     house.rotation.y=Math.abs(Math.sin(angle)*0.15)
     house.rotation.y=-(Math.abs(Math.sin(angle)*0.15))
+    
     // Update controls
     controls.update()
 
